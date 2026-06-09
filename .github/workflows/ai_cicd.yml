@@ -1,3 +1,5 @@
+# .github/workflows/ai_cicd.yml
+
 name: AI CI/CD Pipeline
 
 on:
@@ -20,15 +22,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5              # ← updated
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6          # ← updated
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache pip packages
-        uses: actions/cache@v5                 # ← updated
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
@@ -41,7 +43,9 @@ jobs:
 
       - name: Lint with flake8
         run: |
+          # fail on syntax errors and undefined names
           flake8 src/ --count --select=E9,F63,F7,F82 --show-source
+          # warn on style issues — max line length 100
           flake8 src/ --count --max-line-length=100 --statistics
 
       - name: Format check with black
@@ -49,7 +53,7 @@ jobs:
 
       - name: Type check with mypy
         run: mypy src/ --ignore-missing-imports
-        continue-on-error: true
+        continue-on-error: true   # warn but don't block on type errors
 
 
   # ════════════════════════════════════════════════════════════
@@ -58,14 +62,14 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: code-quality
+    needs: code-quality       # only runs if code quality passes
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5              # ← updated
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6          # ← updated
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -81,7 +85,7 @@ jobs:
             -v \
             --cov=src \
             --cov-report=term-missing \
-            --cov-fail-under=70
+            --cov-fail-under=70    # fail if coverage drops below 70%
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -92,19 +96,20 @@ jobs:
 
   # ════════════════════════════════════════════════════════════
   # Stage 3 — AI Quality Tests
+  # only runs on main branch — uses real API key
   # ════════════════════════════════════════════════════════════
   ai-quality-tests:
     name: AI Quality Tests
     runs-on: ubuntu-latest
     needs: unit-tests
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'   # only on main branch
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5              # ← updated
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v6          # ← updated
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -116,15 +121,16 @@ jobs:
 
       - name: Run AI quality tests
         env:
-          OPENAI_API_KEY:       ${{ secrets.OPENAI_API_KEY }}
-          LANGCHAIN_API_KEY:    ${{ secrets.LANGCHAIN_API_KEY }}
-          LANGCHAIN_TRACING_V2: "true"
-          LANGCHAIN_PROJECT:    "CI-CD-Pipeline"
+          # secrets stored in GitHub repo Settings → Secrets
+          OPENAI_API_KEY:        ${{ secrets.OPENAI_API_KEY }}
+          LANGCHAIN_API_KEY:     ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_TRACING_V2:  "true"
+          LANGCHAIN_PROJECT:     "CI-CD-Pipeline"
         run: |
           pytest tests/test_ai_quality.py \
             -v \
             --tb=short \
-            -x
+            -x              # stop on first failure — fast feedback
 
       - name: Upload AI test results
         if: always()
@@ -136,6 +142,7 @@ jobs:
 
   # ════════════════════════════════════════════════════════════
   # Stage 4 — Deploy
+  # only runs if all previous stages pass
   # ════════════════════════════════════════════════════════════
   deploy:
     name: Deploy to Production
@@ -145,7 +152,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5              # ← updated
+        uses: actions/checkout@v4
 
       - name: Deploy notification
         run: |
@@ -154,6 +161,8 @@ jobs:
           echo "Unit tests:      ✓"
           echo "AI quality:      ✓"
           echo "Deploying to production..."
+          # add your actual deploy command here:
+          # e.g. docker build + push, kubectl apply, etc.
 
       - name: Create deployment summary
         run: |
