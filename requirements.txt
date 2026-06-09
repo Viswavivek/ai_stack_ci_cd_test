@@ -1,0 +1,10 @@
+langchain
+langchain-openai
+langchain-community
+faiss-cpu
+python-dotenv
+pytest
+pytest-cov
+flake8
+black
+mypy

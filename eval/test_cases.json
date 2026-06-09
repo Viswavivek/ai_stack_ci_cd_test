@@ -1,0 +1,25 @@
+
+{
+  "sentiment_cases": [
+    {"text": "I love this product!", "expected": "positive"},
+    {"text": "This is terrible.", "expected": "negative"},
+    {"text": "The meeting is tomorrow.", "expected": "neutral"}
+  ],
+  "qa_cases": [
+    {
+      "context": "Python was created by Guido van Rossum in 1991.",
+      "question": "Who created Python?",
+      "expected_keywords": ["guido", "van rossum"]
+    },
+    {
+      "context": "The Eiffel Tower is located in Paris, France.",
+      "question": "Where is the Eiffel Tower?",
+      "expected_keywords": ["paris", "france"]
+    }
+  ],
+  "quality_thresholds": {
+    "sentiment_accuracy": 0.80,
+    "qa_keyword_match":   0.80,
+    "summary_word_limit_tolerance": 1.25
+  }
+}
