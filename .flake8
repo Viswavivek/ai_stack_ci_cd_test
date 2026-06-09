@@ -2,12 +2,12 @@
 [flake8]
 max-line-length = 100
 ignore =
-    E221,   # multiple spaces before operator (alignment)
-    E302,   # expected 2 blank lines
-    E303,   # too many blank lines
-    W292,   # no newline at end of file
-    F401,   # imported but unused
-    W503    # line break before binary operator
+    E221,
+    E302,
+    E303,
+    W292,
+    F401,
+    W503
 exclude =
     .git,
     __pycache__,
